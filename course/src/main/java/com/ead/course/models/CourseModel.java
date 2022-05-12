@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -48,8 +50,16 @@ public class CourseModel implements Serializable {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     //O direcionamento é bi-direcional com a entidade Module e é mapeado. Mesmo que não fosse mapeado essa relação seria
     //criada automatícamente criando tabelas extras para gerenciar este relacionamento, gerando queries desnecessárias
-    @OneToMany(mappedBy = "course")
+    //Carregamento Lazy é o mais indicado pois não carrega todos os dados dos relacionamento de uma vez, porém, não
+    //pode ser alterado em tempo de execução
+    //@OneToMany(mappedBy = "course", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "course", fetch = FetchType.LAZY)
+    //O FetchMode define como será retornado os dados dos relacionamentos, se for defino como JOIN o FetchType.LAZY será
+    //ignorado, se for o SELECT será feito um select para cada item da sub-consulta e o SUBSELECT faz a consulta pela
+    // entidade pai e uma para retornar todos os filhos
+    @Fetch(FetchMode.SUBSELECT)
     //Set não é ordenado, não permite duplicados e permite o retorno de todas associações de uma vez
     //O List não permite isso e pode gerar multiplas queries durante uma atualização
+    //@OnDelete(action = OnDeleteAction.CASCADE)
     private Set<ModuleModel> modules;
 }
